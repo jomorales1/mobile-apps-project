@@ -51,7 +51,41 @@ class _NavigationDrawerWidgetState extends State<NavigationDrawerWidget> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('App Museos')),
+      appBar: AppBar(
+        title: const Text('App Museos'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.chat),
+            tooltip: 'Ir al Chatbot',
+            onPressed: () {
+              setState(() {
+                selectedPage = 'Chatbot';
+              });
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.search),
+            tooltip: 'Buscar',
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Buscar'),
+                  content: const Text(
+                    'Funcionalidad de búsqueda próximamente.',
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Cerrar'),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ],
+      ),
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
