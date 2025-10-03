@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'presentation/screens/info_general_view.dart';
 import 'presentation/screens/mapa_interactivo_view.dart';
 import 'presentation/screens/arbol_vida_view.dart';
@@ -7,6 +8,9 @@ import 'presentation/screens/tickets_view.dart';
 import 'presentation/screens/configuracion_view.dart';
 
 void main() {
+    WidgetsFlutterBinding.ensureInitialized();
+
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   runApp(const MainApp());
 }
 
@@ -15,7 +19,7 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(home: NavigationDrawerWidget());
+    return const MaterialApp( debugShowCheckedModeBanner: false, home: NavigationDrawerWidget());
   }
 }
 
