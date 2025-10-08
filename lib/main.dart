@@ -1,5 +1,8 @@
+
+import 'package:app_museos/presentation/screens/search_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'presentation/screens/info_general_view.dart';
 import 'presentation/screens/mapa_interactivo_view.dart';
 import 'presentation/screens/arbol_vida_view.dart';
@@ -7,8 +10,13 @@ import 'presentation/screens/chatbot_view.dart';
 import 'presentation/screens/tickets_view.dart';
 import 'presentation/screens/configuracion_view.dart';
 
-void main() {
-    WidgetsFlutterBinding.ensureInitialized();
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+    await Supabase.initialize(
+    url: 'URL_DE_TU_SUPABASE',
+    anonKey: 'TU_ANON_KEY',
+  );
 
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   runApp(const MainApp());
@@ -42,9 +50,17 @@ class _NavigationDrawerWidgetState extends State<NavigationDrawerWidget> {
       case 'Árbol de la vida':
         return const ArbolVidaView();
       case 'Chatbot':
-        return const ChatbotView();
+        return ChatbotView(
+          onBack: () {
+            setState(() {
+              selectedPage = 'Mapa interactivo';
+            });
+          },
+        );
       case 'Tickets':
         return const TicketsView();
+      case 'Buscar':
+        return const SearchView();
       case 'Configuración':
         return const ConfiguracionView();
       default:
@@ -58,36 +74,24 @@ class _NavigationDrawerWidgetState extends State<NavigationDrawerWidget> {
       appBar: AppBar(
         title: const Text('App Museos'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.chat),
-            tooltip: 'Ir al Chatbot',
-            onPressed: () {
-              setState(() {
+              IconButton(
+              icon: const Icon(Icons.chat),
+              tooltip: 'Ir al Chatbot',
+              onPressed: () {
+                setState(() {
                 selectedPage = 'Chatbot';
-              });
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.search),
-            tooltip: 'Buscar',
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text('Buscar'),
-                  content: const Text(
-                    'Funcionalidad de búsqueda próximamente.',
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('Cerrar'),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
+                });
+              },
+              ),
+              IconButton(
+              icon: const Icon(Icons.search),
+              tooltip: 'Buscar',
+              onPressed: () {
+                setState(() {
+                selectedPage = 'Buscar';
+                });
+              },
+              ),
         ],
       ),
       drawer: Drawer(
@@ -95,7 +99,7 @@ class _NavigationDrawerWidgetState extends State<NavigationDrawerWidget> {
           padding: EdgeInsets.zero,
           children: <Widget>[
             const DrawerHeader(
-              decoration: BoxDecoration(color: Colors.blue),
+              decoration: BoxDecoration(color: Color(0xFF1B5E20)),
               child: Text(
                 'App Museos',
                 style: TextStyle(color: Colors.white, fontSize: 24),
@@ -168,3 +172,6 @@ class _NavigationDrawerWidgetState extends State<NavigationDrawerWidget> {
     );
   }
 }
+
+
+
