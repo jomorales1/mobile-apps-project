@@ -8,6 +8,7 @@ class Detail {
   final String imagenDistribucion;
   final String audio;
   final String datoCurioso;
+  final String modelo;
   final String cicloVida;
   final DateTime? fechaCreacion;
 
@@ -21,6 +22,7 @@ class Detail {
     required this.imagenDistribucion,
     required this.audio,
     required this.datoCurioso,
+    required this.modelo,
     required this.cicloVida,
     this.fechaCreacion,
   });
@@ -34,6 +36,7 @@ class Detail {
       subtitulo: json['subtitulo'] ?? '',
       texto1: json['texto1'] ?? '',
       imagenDistribucion: json['imagen_distribucion'] ?? '',
+      modelo: json['modelo'] ?? '',
       audio: json['audio'] ?? '',
       datoCurioso: json['dato_curioso'] ?? '',
       cicloVida: json['ciclo_vida'] ?? '',
@@ -55,6 +58,7 @@ class Detail {
       'audio': audio,
       'dato_curioso': datoCurioso,
       'ciclo_vida': cicloVida,
+      'modelo': modelo,
       'fecha_creacion': fechaCreacion?.toIso8601String(),
     };
   }

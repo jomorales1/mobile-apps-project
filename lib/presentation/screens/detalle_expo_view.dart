@@ -1,9 +1,13 @@
 import 'package:app_museos/model/detail_model.dart';
 import 'package:app_museos/model/exposicion_model.dart';
+import 'package:app_museos/presentation/screens/model_view.dart';
 import 'package:app_museos/repositories/detail_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:http/http.dart' as http;
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
 
 class DetalleExpoView extends StatefulWidget {
   final MapPoint exposicion_model;
@@ -20,9 +24,10 @@ class _DetalleExpoViewState extends State<DetalleExpoView> {
   String? imageUrl;
   String? imageDistribucionUrl;
   String? audioUrl;
+  String? modeloGlbPath; // Cambiar a ruta local
   bool imageExists = false;
+  bool isDownloadingModel = false;
   
-  // Audio player
   final AudioPlayer _audioPlayer = AudioPlayer();
   bool isPlaying = false;
   Duration duration = Duration.zero;
@@ -60,7 +65,6 @@ class _DetalleExpoViewState extends State<DetalleExpoView> {
 
   Future<void> cargarImagen() async {
     try {
-      // Cargar imagen principal
       final url = Supabase.instance.client.storage
           .from('MuseoAPP')
           .getPublicUrl(widget.exposicion_model.image);
@@ -109,6 +113,55 @@ class _DetalleExpoViewState extends State<DetalleExpoView> {
     }
   }
 
+  Future<void> cargarModelo3D() async {
+    if (detail?.modelo == null || detail!.modelo.isEmpty) return;
+
+    try {
+      final url = Supabase.instance.client.storage
+          .from('ModelAPP')
+          .getPublicUrl(detail!.modelo);
+      
+      // Descargar el archivo GLB
+      await descargarModelo3D(url);
+    } catch (e) {
+      print('⚠️ Error al cargar modelo 3D: $e');
+    }
+  }
+
+  Future<void> descargarModelo3D(String url) async {
+    try {
+      setState(() {
+        isDownloadingModel = true;
+      });
+
+      // Obtener directorio de documentos
+      final dir = await getApplicationDocumentsDirectory();
+      final nombreArchivo = 'modelo_${detail?.id ?? 'default'}.glb';
+      final rutaLocal = File('${dir.path}/$nombreArchivo');
+
+      // Descargar archivo
+      final response = await http.get(Uri.parse(url));
+      
+      if (response.statusCode == 200) {
+        await rutaLocal.writeAsBytes(response.bodyBytes);
+        
+        setState(() {
+          modeloGlbPath = rutaLocal.path;
+          isDownloadingModel = false;
+        });
+        
+        print('✅ Modelo 3D descargado: ${rutaLocal.path}');
+      } else {
+        throw Exception('Error al descargar modelo: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('❌ Error al descargar modelo 3D: $e');
+      setState(() {
+        isDownloadingModel = false;
+      });
+    }
+  }
+
   Future<void> cargarDetalle() async {
     try {
       final result = await DetailRepository().fetchDetailId(widget.exposicion_model.id);
@@ -119,9 +172,9 @@ class _DetalleExpoViewState extends State<DetalleExpoView> {
 
       if (result != null) {
         print('✅ Detalle cargado: $result');
-        // Cargar recursos adicionales
         cargarImagenDistribucion();
         cargarAudio();
+        cargarModelo3D();
       } else {
         print('⚠️ No se encontró el detalle');
       }
@@ -158,7 +211,6 @@ class _DetalleExpoViewState extends State<DetalleExpoView> {
               ? const Center(child: Text('No se encontró información del detalle.'))
               : CustomScrollView(
                   slivers: [
-                    // App Bar con imagen - manteniendo el diseño original
                     SliverAppBar(
                       expandedHeight: 400,
                       pinned: true,
@@ -197,7 +249,6 @@ class _DetalleExpoViewState extends State<DetalleExpoView> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Nombre y nombre científico
                             Text(
                               detail?.nombre ?? '',
                               style: const TextStyle(
@@ -221,7 +272,6 @@ class _DetalleExpoViewState extends State<DetalleExpoView> {
 
                             const SizedBox(height: 16),
 
-                            // Reproductor de audio
                             if (audioUrl != null) ...[
                               _buildMinimalCard(
                                 child: Column(
@@ -291,8 +341,6 @@ class _DetalleExpoViewState extends State<DetalleExpoView> {
                               const SizedBox(height: 24),
                             ],
 
-
-                            // Subtítulo
                             if (detail?.subtitulo != null) ...[
                               Center(
                                 child: Container(
@@ -323,8 +371,6 @@ class _DetalleExpoViewState extends State<DetalleExpoView> {
                               const SizedBox(height: 24),
                             ],
 
-
-                            // Descripción principal (texto1)
                             if (detail?.texto1 != null) ...[
                               _buildMinimalCard(
                                 child: Column(
@@ -346,7 +392,6 @@ class _DetalleExpoViewState extends State<DetalleExpoView> {
                               const SizedBox(height: 24),
                             ],
 
-                            // Imagen de distribución
                             if (imageDistribucionUrl != null) ...[
                               const Text(
                                 'Distribución Geográfica',
@@ -384,7 +429,6 @@ class _DetalleExpoViewState extends State<DetalleExpoView> {
                               const SizedBox(height: 24),
                             ],
 
-                            // Ciclo de vida
                             if (detail?.cicloVida != null) ...[
                               const Text(
                                 'Ciclo de Vida',
@@ -408,7 +452,6 @@ class _DetalleExpoViewState extends State<DetalleExpoView> {
                               const SizedBox(height: 24),
                             ],
 
-                            // Dato curioso
                             if (detail?.datoCurioso != null) ...[
                               const Text(
                                 'Dato Curioso',
@@ -447,6 +490,80 @@ class _DetalleExpoViewState extends State<DetalleExpoView> {
                                       ),
                                     ),
                                   ],
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                            ],
+
+                            if (modeloGlbPath != null) ...[
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.black87,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(vertical: 16),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    elevation: 2,
+                                  ),
+                                  onPressed: () async {
+                                    await Future.delayed(const Duration(milliseconds: 100));
+                                    print('URL del modelo: $modeloGlbPath');
+                                    Navigator.push(                                      
+                                      context,
+                                      MaterialPageRoute(
+                                      builder: (context) => ModelView(modelPath: modeloGlbPath!)
+                                      ),
+                                    );
+                                  },
+                                  child: const Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.view_in_ar, size: 20),
+                                      SizedBox(width: 8),
+                                      Text(
+                                        'Ver Modelo 3D',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                          letterSpacing: 0.3,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ] else if (isDownloadingModel) ...[
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton.icon(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.grey[400],
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(vertical: 16),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    elevation: 2,
+                                  ),
+                                  onPressed: null,
+                                  icon: const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                    ),
+                                  ),
+                                  label: const Text(
+                                    'Descargando modelo 3D...',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ],

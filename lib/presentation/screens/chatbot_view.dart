@@ -18,7 +18,7 @@ class _ChatbotViewState extends State<ChatbotView> {
   final List<ChatMessage> _messages = [];
   bool _isLoading = false;
 
-  static const String n8nWebhookUrl = 'URL_DE_TU_WEBHOOK_N8N';
+  static const String n8nWebhookUrl = 'https://unbot.n8n.cloud/webhook/un-bot-webhook';
 
   @override
   void initState() {
@@ -82,7 +82,6 @@ class _ChatbotViewState extends State<ChatbotView> {
     _addUserMessage(text);
     _messageController.clear();
 
-    // Agregar indicador de "escribiendo..."
     setState(() {
       _isLoading = true;
     });
@@ -93,7 +92,6 @@ class _ChatbotViewState extends State<ChatbotView> {
 
   Future<void> _sendToBot(String userMessage) async {
     try {
-      // Llamada a la API de n8n con Groq
       final response = await http.post(
         Uri.parse(n8nWebhookUrl),
         headers: {
@@ -109,7 +107,6 @@ class _ChatbotViewState extends State<ChatbotView> {
         },
       );
 
-      // Remover el mensaje "escribiendo..."
       setState(() {
         _isLoading = false;
         if (_messages.isNotEmpty && _messages.last.text == 'escribiendo...') {
@@ -147,54 +144,116 @@ class _ChatbotViewState extends State<ChatbotView> {
 
   @override
   Widget build(BuildContext context) {
-    const greenDark = Color(0xFF1B5E20);
-
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: greenDark,
+        backgroundColor: Colors.white,
+        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.grey[100],
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(Icons.arrow_back, color: Colors.black87, size: 20),
+          ),
           onPressed: widget.onBack,
         ),
         title: Row(
-          children: const [
-            CircleAvatar(
-              backgroundColor: Colors.white,
-              child: Icon(Icons.smart_toy, color: greenDark),
-            ),
-            SizedBox(width: 12),
-            Text(
-              'UN bot',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.green[50],
+                borderRadius: BorderRadius.circular(12),
               ),
+              child: Icon(
+                Icons.smart_toy_outlined,
+                color: Colors.green[700],
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'UN bot',
+                  style: TextStyle(
+                    color: Colors.black87,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Text(
+                  _isLoading ? 'Escribiendo...' : 'En línea',
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                    fontSize: 12,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
         actions: [
-          // Botón para reiniciar el chat
           IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.white),
+            icon: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.grey[100],
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(Icons.refresh_rounded, color: Colors.grey[700], size: 20),
+            ),
             onPressed: () {
               showDialog(
                 context: context,
                 builder: (BuildContext context) {
                   return AlertDialog(
-                    title: const Text('¿Reiniciar chat?'),
-                    content: const Text('¿Deseas reiniciar la conversación?'),
+                    backgroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    title: const Text(
+                      '¿Reiniciar chat?',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 18,
+                      ),
+                    ),
+                    content: Text(
+                      '¿Deseas reiniciar la conversación?',
+                      style: TextStyle(
+                        color: Colors.grey[700],
+                        fontSize: 15,
+                      ),
+                    ),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.pop(context),
-                        child: const Text('Cancelar'),
+                        child: Text(
+                          'Cancelar',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
                       ),
                       TextButton(
                         onPressed: () {
                           Navigator.pop(context);
                           _resetChat();
                         },
-                        child: const Text('Reiniciar'),
+                        child: Text(
+                          'Reiniciar',
+                          style: TextStyle(
+                            color: Colors.green[700],
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
                     ],
                   );
@@ -202,24 +261,45 @@ class _ChatbotViewState extends State<ChatbotView> {
               );
             },
           ),
+          const SizedBox(width: 8),
         ],
       ),
       body: Column(
         children: [
+          Divider(height: 1, color: Colors.grey[200]),
           Expanded(
             child: _messages.isEmpty
                 ? Center(
-                    child: Text(
-                      'Inicia una conversación',
-                      style: TextStyle(
-                        color: Colors.grey[400],
-                        fontSize: 16,
-                      ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: Colors.green[50],
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Icon(
+                            Icons.chat_bubble_outline,
+                            size: 48,
+                            color: Colors.green[300],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Inicia una conversación',
+                          style: TextStyle(
+                            color: Colors.grey[400],
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
                     ),
                   )
                 : ListView.builder(
                     controller: _scrollController,
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(20),
                     itemCount: _messages.length,
                     itemBuilder: (context, index) {
                       return MessageBubble(message: _messages[index]);
@@ -229,52 +309,65 @@ class _ChatbotViewState extends State<ChatbotView> {
           Container(
             decoration: BoxDecoration(
               color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  offset: const Offset(0, -2),
-                  blurRadius: 4,
-                  color: Colors.black.withOpacity(0.1),
-                ),
-              ],
+              border: Border(
+                top: BorderSide(color: Colors.grey[200]!, width: 1),
+              ),
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Row(
               children: [
                 Expanded(
-                  child: TextField(
-                    controller: _messageController,
-                    enabled: !_isLoading,
-                    decoration: InputDecoration(
-                      hintText: _isLoading ? 'Esperando respuesta...' : 'Escribe un mensaje...',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(24),
-                        borderSide: BorderSide.none,
-                      ),
-                      filled: true,
-                      fillColor: _isLoading ? Colors.grey[200] : Colors.grey[100],
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 10,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.grey[50],
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                        color: Colors.grey[200]!,
+                        width: 1,
                       ),
                     ),
-                    onSubmitted: (_) => _handleSendMessage(),
-                    textInputAction: TextInputAction.send,
+                    child: TextField(
+                      controller: _messageController,
+                      enabled: !_isLoading,
+                      decoration: InputDecoration(
+                        hintText: _isLoading ? 'Esperando respuesta...' : 'Escribe un mensaje...',
+                        hintStyle: TextStyle(
+                          color: Colors.grey[400],
+                          fontSize: 15,
+                        ),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 12,
+                        ),
+                      ),
+                      style: const TextStyle(fontSize: 15),
+                      onSubmitted: (_) => _handleSendMessage(),
+                      textInputAction: TextInputAction.send,
+                    ),
                   ),
                 ),
-                const SizedBox(width: 8),
-                CircleAvatar(
-                  backgroundColor: _isLoading ? Colors.grey : greenDark,
+                const SizedBox(width: 12),
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: _isLoading ? Colors.grey[300] : Colors.green[600],
+                    borderRadius: BorderRadius.circular(24),
+                  ),
                   child: _isLoading
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
+                      ? Center(
+                          child: SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2.5,
+                            ),
                           ),
                         )
                       : IconButton(
-                          icon: const Icon(Icons.send, color: Colors.white, size: 20),
+                          icon: const Icon(Icons.send_rounded, color: Colors.white, size: 20),
                           onPressed: _handleSendMessage,
                         ),
                 ),
@@ -306,23 +399,30 @@ class MessageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const greenDark = Color(0xFF1B5E20);
     final isTyping = message.text == 'escribiendo...';
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: 16),
       child: Row(
         mainAxisAlignment:
             message.isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (!message.isUser) ...[
-            const CircleAvatar(
-              radius: 16,
-              backgroundColor: greenDark,
-              child: Icon(Icons.smart_toy, color: Colors.white, size: 18),
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: Colors.green[50],
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(
+                Icons.smart_toy_outlined,
+                color: Colors.green[700],
+                size: 18,
+              ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 10),
           ],
           Flexible(
             child: Column(
@@ -333,11 +433,22 @@ class MessageBubble extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
-                    vertical: 10,
+                    vertical: 12,
                   ),
                   decoration: BoxDecoration(
-                    color: message.isUser ? greenDark : Colors.grey[200],
-                    borderRadius: BorderRadius.circular(18),
+                    color: message.isUser ? Colors.green[600] : Colors.grey[100],
+                    borderRadius: BorderRadius.only(
+                      topLeft: const Radius.circular(18),
+                      topRight: const Radius.circular(18),
+                      bottomLeft: Radius.circular(message.isUser ? 18 : 4),
+                      bottomRight: Radius.circular(message.isUser ? 4 : 18),
+                    ),
+                    border: Border.all(
+                      color: message.isUser
+                          ? Colors.transparent
+                          : Colors.grey[200]!,
+                      width: 1,
+                    ),
                   ),
                   child: isTyping
                       ? Row(
@@ -345,19 +456,21 @@ class MessageBubble extends StatelessWidget {
                           children: [
                             Text(
                               message.text,
-                              style: const TextStyle(
-                                color: Colors.black87,
+                              style: TextStyle(
+                                color: Colors.grey[600],
                                 fontSize: 15,
                                 fontStyle: FontStyle.italic,
                               ),
                             ),
                             const SizedBox(width: 8),
-                            const SizedBox(
-                              width: 12,
-                              height: 12,
+                            SizedBox(
+                              width: 14,
+                              height: 14,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(greenDark),
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.green[600]!,
+                                ),
                               ),
                             ),
                           ],
@@ -367,16 +480,18 @@ class MessageBubble extends StatelessWidget {
                           style: TextStyle(
                             color: message.isUser ? Colors.white : Colors.black87,
                             fontSize: 15,
+                            height: 1.4,
                           ),
                         ),
                 ),
                 if (!isTyping) ...[
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 6),
                   Text(
                     _formatTime(message.timestamp),
                     style: TextStyle(
-                      color: Colors.grey[500],
+                      color: Colors.grey[400],
                       fontSize: 11,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
@@ -384,11 +499,23 @@ class MessageBubble extends StatelessWidget {
             ),
           ),
           if (message.isUser) ...[
-            const SizedBox(width: 8),
-            const CircleAvatar(
-              radius: 16,
-              backgroundColor: Color(0xFFB9F6CA),
-              child: Icon(Icons.person, color: greenDark, size: 18),
+            const SizedBox(width: 10),
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: Colors.grey[100],
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: Colors.grey[300]!,
+                  width: 1,
+                ),
+              ),
+              child: Icon(
+                Icons.person_outline,
+                color: Colors.grey[600],
+                size: 18,
+              ),
             ),
           ],
         ],
