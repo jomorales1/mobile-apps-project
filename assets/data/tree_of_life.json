@@ -1,0 +1,29 @@
+{
+  "name": "Life",
+  "children": [
+    {
+      "name": "Animals",
+      "children": [
+        {
+          "name": "Mammals",
+          "children": [
+            {"name": "Human", "id": "homo_sapiens"},
+            {"name": "Whale", "id": "balaenoptera_musculus"}
+          ]
+        },
+        {
+          "name": "Birds",
+          "children": [
+            {"name": "Eagle", "id": "aquila_chrysaetos"}
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Plants",
+      "children": [
+        {"name": "Oak", "id": "quercus_robur"}
+      ]
+    }
+  ]
+}
