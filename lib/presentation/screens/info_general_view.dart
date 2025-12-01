@@ -484,8 +484,8 @@ final List<MuseoInfo> _museos = [
   
   // Museo con imagen local (assets)
   MuseoInfo(
-    nombre: 'Museo Arqueológico',
-    ubicacion: 'Chapultepec',
+    nombre: 'Museo de Historia natural',
+    ubicacion: 'Universidad Nacional de Colombia',
     categoria: 'Historia',
     icon: Icons.account_balance_outlined,
     color: const Color(0xFF8E24AA),
