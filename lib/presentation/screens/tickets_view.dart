@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 class TicketsView extends StatelessWidget {
-  const TicketsView({super.key});
+    final Function(String)? onNavigate;
+  const TicketsView({super.key, this.onNavigate});
 
   @override
   Widget build(BuildContext context) {

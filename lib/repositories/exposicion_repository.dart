@@ -24,7 +24,7 @@ class ExposicionRepository {
       final response = await _supabase
           .from(_tableName)
           .select()
-          .like('label', '%$label%');
+          .ilike('label', '%$label%');
       return response.map<MapPoint>((data) => MapPoint.fromJson(data)).toList();
     } catch (e) {
       return [];

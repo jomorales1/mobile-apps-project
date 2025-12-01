@@ -10,7 +10,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 
 class MapaInteractivoView extends StatelessWidget {
-  const MapaInteractivoView({super.key});
+    final Function(String)? onNavigate;
+  const MapaInteractivoView({super.key, this.onNavigate});
 
   @override
   Widget build(BuildContext context) {

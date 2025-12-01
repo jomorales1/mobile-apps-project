@@ -5,7 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SearchView extends StatefulWidget {
-  const SearchView({Key? key}) : super(key: key);
+    final Function(String)? onNavigate;
+  const SearchView({Key? key, this.onNavigate}) : super(key: key);
 
   @override
   State<SearchView> createState() => _SearchViewState();

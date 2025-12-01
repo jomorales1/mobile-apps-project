@@ -5,7 +5,8 @@ import '../../repositories/detail_repository.dart';
 import '../../model/detail_model.dart';
 
 class ArbolVidaView extends StatefulWidget {
-  const ArbolVidaView({super.key});
+    final Function(String)? onNavigate;
+  const ArbolVidaView({super.key, this.onNavigate});
 
   @override
   State<ArbolVidaView> createState() => _ArbolVidaViewState();
