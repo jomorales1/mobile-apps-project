@@ -1,4 +1,7 @@
+import 'package:app_museos/presentation/screens/search_view.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'presentation/screens/info_general_view.dart';
 import 'presentation/screens/mapa_interactivo_view.dart';
 import 'presentation/screens/arbol_vida_view.dart';
@@ -6,7 +9,15 @@ import 'presentation/screens/chatbot_view.dart';
 import 'presentation/screens/tickets_view.dart';
 import 'presentation/screens/configuracion_view.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+    await Supabase.initialize(
+    url: 'Api',
+    anonKey: 'API_KEY',
+  );
+
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   runApp(const MainApp());
 }
 
@@ -15,7 +26,25 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(home: NavigationDrawerWidget());
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF2E7D32),
+          brightness: Brightness.light,
+        ),
+        scaffoldBackgroundColor: Colors.white,
+        appBarTheme: const AppBarTheme(
+          elevation: 0,
+          centerTitle: false,
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.black87,
+          systemOverlayStyle: SystemUiOverlayStyle.dark,
+        ),
+      ),
+      home: const NavigationDrawerWidget(),
+    );
   }
 }
 
@@ -29,6 +58,39 @@ class NavigationDrawerWidget extends StatefulWidget {
 class _NavigationDrawerWidgetState extends State<NavigationDrawerWidget> {
   String selectedPage = 'Información general';
 
+  final List<DrawerItem> _menuItems = [
+    DrawerItem(
+      icon: Icons.info_outline,
+      title: 'Información general',
+      page: 'Información general',
+    ),
+    DrawerItem(
+      icon: Icons.map_outlined,
+      title: 'Mapa interactivo',
+      page: 'Mapa interactivo',
+    ),
+    DrawerItem(
+      icon: Icons.park_outlined,
+      title: 'Árbol de la vida',
+      page: 'Árbol de la vida',
+    ),
+    DrawerItem(
+      icon: Icons.chat_bubble_outline,
+      title: 'Chatbot',
+      page: 'Chatbot',
+    ),
+    DrawerItem(
+      icon: Icons.confirmation_number_outlined,
+      title: 'Tickets',
+      page: 'Tickets',
+    ),
+    DrawerItem(
+      icon: Icons.settings_outlined,
+      title: 'Configuración',
+      page: 'Configuración',
+    ),
+  ];
+
   Widget _getPageWidget(String page) {
     switch (page) {
       case 'Información general':
@@ -38,9 +100,17 @@ class _NavigationDrawerWidgetState extends State<NavigationDrawerWidget> {
       case 'Árbol de la vida':
         return const ArbolVidaView();
       case 'Chatbot':
-        return const ChatbotView();
+        return ChatbotView(
+          onBack: () {
+            setState(() {
+              selectedPage = 'Mapa interactivo';
+            });
+          },
+        );
       case 'Tickets':
         return const TicketsView();
+      case 'Buscar':
+        return const SearchView();
       case 'Configuración':
         return const ConfiguracionView();
       default:
@@ -52,10 +122,27 @@ class _NavigationDrawerWidgetState extends State<NavigationDrawerWidget> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('App Museos'),
+        title: const Text(
+          'App Museos',
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 20,
+          ),
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.chat),
+            icon: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.green[50],
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                Icons.chat_bubble_outline,
+                color: Colors.green[700],
+                size: 20,
+              ),
+            ),
             tooltip: 'Ir al Chatbot',
             onPressed: () {
               setState(() {
@@ -63,99 +150,184 @@ class _NavigationDrawerWidgetState extends State<NavigationDrawerWidget> {
               });
             },
           ),
+          const SizedBox(width: 4),
           IconButton(
-            icon: const Icon(Icons.search),
+            icon: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.green[50],
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                Icons.search,
+                color: Colors.green[700],
+                size: 20,
+              ),
+            ),
             tooltip: 'Buscar',
             onPressed: () {
-              showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text('Buscar'),
-                  content: const Text(
-                    'Funcionalidad de búsqueda próximamente.',
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('Cerrar'),
-                    ),
-                  ],
-                ),
-              );
+              setState(() {
+                selectedPage = 'Buscar';
+              });
             },
           ),
+          const SizedBox(width: 12),
         ],
       ),
       drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            const DrawerHeader(
-              decoration: BoxDecoration(color: Colors.blue),
-              child: Text(
-                'App Museos',
-                style: TextStyle(color: Colors.white, fontSize: 24),
+        backgroundColor: Colors.white,
+        child: Column(
+          children: [
+            // Header minimalista
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(24, 60, 24, 32),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.green[600]!,
+                    Colors.green[800]!,
+                  ],
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: const Icon(
+                      Icons.museum_outlined,
+                      color: Colors.white,
+                      size: 32,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'App Museos',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Explora y descubre',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.9),
+                      fontSize: 14,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ],
               ),
             ),
-            ListTile(
-              leading: const Icon(Icons.info),
-              title: const Text('Información general'),
-              onTap: () {
-                Navigator.pop(context);
-                setState(() {
-                  selectedPage = 'Información general';
-                });
-              },
+
+            // Menu items
+            Expanded(
+              child: ListView.builder(
+                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+                itemCount: _menuItems.length,
+                itemBuilder: (context, index) {
+                  final item = _menuItems[index];
+                  final isSelected = selectedPage == item.page;
+
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(12),
+                        onTap: () {
+                          Navigator.pop(context);
+                          setState(() {
+                            selectedPage = item.page;
+                          });
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? Colors.green[50]
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: isSelected
+                                  ? Colors.green[200]!
+                                  : Colors.transparent,
+                              width: 1,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                item.icon,
+                                color: isSelected
+                                    ? Colors.green[700]
+                                    : Colors.grey[600],
+                                size: 22,
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Text(
+                                  item.title,
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: isSelected
+                                        ? FontWeight.w600
+                                        : FontWeight.w500,
+                                    color: isSelected
+                                        ? Colors.green[900]
+                                        : Colors.grey[700],
+                                  ),
+                                ),
+                              ),
+                              if (isSelected)
+                                Container(
+                                  width: 6,
+                                  height: 6,
+                                  decoration: BoxDecoration(
+                                    color: Colors.green[700],
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
             ),
-            ListTile(
-              leading: const Icon(Icons.map),
-              title: const Text('Mapa interactivo'),
-              onTap: () {
-                Navigator.pop(context);
-                setState(() {
-                  selectedPage = 'Mapa interactivo';
-                });
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.nature),
-              title: const Text('Árbol de la vida'),
-              onTap: () {
-                Navigator.pop(context);
-                setState(() {
-                  selectedPage = 'Árbol de la vida';
-                });
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.chat),
-              title: const Text('Chatbot'),
-              onTap: () {
-                Navigator.pop(context);
-                setState(() {
-                  selectedPage = 'Chatbot';
-                });
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.confirmation_num),
-              title: const Text('Tickets'),
-              onTap: () {
-                Navigator.pop(context);
-                setState(() {
-                  selectedPage = 'Tickets';
-                });
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.settings),
-              title: const Text('Configuración'),
-              onTap: () {
-                Navigator.pop(context);
-                setState(() {
-                  selectedPage = 'Configuración';
-                });
-              },
+
+            // Footer
+            Container(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  Divider(color: Colors.grey[200], height: 1),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Versión 1.0.0',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[500],
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -163,4 +335,16 @@ class _NavigationDrawerWidgetState extends State<NavigationDrawerWidget> {
       body: _getPageWidget(selectedPage),
     );
   }
+}
+
+class DrawerItem {
+  final IconData icon;
+  final String title;
+  final String page;
+
+  DrawerItem({
+    required this.icon,
+    required this.title,
+    required this.page,
+  });
 }
