@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 class InfoGeneralView extends StatelessWidget {
-  const InfoGeneralView({super.key});
+  final Function(String)? onNavigate;
+  const InfoGeneralView({super.key, this.onNavigate});
 
   @override
   Widget build(BuildContext context) {
@@ -153,7 +154,13 @@ class InfoGeneralView extends StatelessWidget {
                 scrollDirection: Axis.horizontal,
                 itemCount: _museos.length,
                 itemBuilder: (context, index) {
-                  return MuseoCard(museo: _museos[index]);
+                  return MuseoCard(
+                    museo: _museos[index],
+                    onTap: () {
+                      // Navega al mapa interactivo cuando se selecciona un museo
+                      onNavigate?.call('Mapa interactivo');
+                    },
+                  );
                 },
               ),
             ),
@@ -264,8 +271,9 @@ class InfoGeneralView extends StatelessWidget {
 
 class MuseoCard extends StatelessWidget {
   final MuseoInfo museo;
+  final VoidCallback? onTap;
 
-  const MuseoCard({super.key, required this.museo});
+  const MuseoCard({super.key, required this.museo, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -276,16 +284,7 @@ class MuseoCard extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: () {
-            // Aquí puedes navegar a los detalles del museo
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Seleccionaste: ${museo.nombre}'),
-                duration: const Duration(seconds: 1),
-                backgroundColor: Colors.green[700],
-              ),
-            );
-          },
+          onTap: onTap,
           child: Container(
             decoration: BoxDecoration(
               color: Colors.white,
@@ -322,16 +321,47 @@ class MuseoCard extends StatelessWidget {
                     ),
                     child: Stack(
                       children: [
-                        // Placeholder o imagen real
+                        // Imagen o icono
                         Container(
                           width: double.infinity,
                           height: double.infinity,
-                          color: museo.color,
-                          child: Icon(
-                            museo.icon,
-                            size: 60,
-                            color: Colors.white.withOpacity(0.7),
-                          ),
+                          color: museo.imageUrl != null ? null : museo.color,
+                          child: museo.imageUrl != null
+                              ? Image.network(
+                                  museo.imageUrl!,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    // Si falla la carga de la imagen, muestra el icono
+                                    return Container(
+                                      color: museo.color,
+                                      child: Icon(
+                                        museo.icon,
+                                        size: 60,
+                                        color: Colors.white.withOpacity(0.7),
+                                      ),
+                                    );
+                                  },
+                                  loadingBuilder: (context, child, loadingProgress) {
+                                    if (loadingProgress == null) return child;
+                                    return Container(
+                                      color: museo.color,
+                                      child: Center(
+                                        child: CircularProgressIndicator(
+                                          value: loadingProgress.expectedTotalBytes != null
+                                              ? loadingProgress.cumulativeBytesLoaded /
+                                                  loadingProgress.expectedTotalBytes!
+                                              : null,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                )
+                              : Icon(
+                                  museo.icon,
+                                  size: 60,
+                                  color: Colors.white.withOpacity(0.7),
+                                ),
                         ),
                         // Badge de categoría
                         Positioned(
@@ -419,6 +449,7 @@ class MuseoInfo {
   final String categoria;
   final IconData icon;
   final Color color;
+  final String? imageUrl; // Nuevo campo para la URL de la imagen
 
   MuseoInfo({
     required this.nombre,
@@ -426,16 +457,38 @@ class MuseoInfo {
     required this.categoria,
     required this.icon,
     required this.color,
+    this.imageUrl, // Opcional
   });
 }
 
 // Lista de museos de ejemplo
 final List<MuseoInfo> _museos = [
+  // // Museo con icono (sin imagen)
+  // MuseoInfo(
+  //   nombre: 'Museo de Historia Natural',
+  //   ubicacion: 'Centro Histórico',
+  //   categoria: 'Ciencias',
+  //   icon: Icons.science_outlined,
+  //   color: const Color(0xFF2E7D32),
+  // ),
+  
+  // // Museo con imagen desde URL
+  // MuseoInfo(
+  //   nombre: 'Museo de Arte Moderno',
+  //   ubicacion: 'Zona Rosa',
+  //   categoria: 'Arte',
+  //   icon: Icons.palette_outlined, // Icono de respaldo
+  //   color: const Color(0xFF1976D2),
+  //   imageUrl: 'https://example.com/museo-arte.jpg', // URL de la imagen
+  // ),
+  
+  // Museo con imagen local (assets)
   MuseoInfo(
-    nombre: 'Museo de Historia Natural',
-    ubicacion: 'Centro Histórico',
-    categoria: 'Ciencias',
-    icon: Icons.science_outlined,
-    color: const Color(0xFF2E7D32),
-  )
+    nombre: 'Museo Arqueológico',
+    ubicacion: 'Chapultepec',
+    categoria: 'Historia',
+    icon: Icons.account_balance_outlined,
+    color: const Color(0xFF8E24AA),
+    imageUrl: 'assets/escudoUnal_black.png', // Imagen local
+  ),
 ];

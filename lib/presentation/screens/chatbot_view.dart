@@ -4,9 +4,10 @@ import 'dart:async';
 import 'package:http/http.dart' as http;
 
 class ChatbotView extends StatefulWidget {
+    final Function(String)? onNavigate;
   final VoidCallback onBack;
 
-  const ChatbotView({super.key, required this.onBack});
+  const ChatbotView({super.key, required this.onBack, this.onNavigate});
 
   @override
   State<ChatbotView> createState() => _ChatbotViewState();

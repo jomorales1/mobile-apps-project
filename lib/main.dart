@@ -9,14 +9,12 @@ import 'presentation/screens/chatbot_view.dart';
 import 'presentation/screens/tickets_view.dart';
 import 'presentation/screens/configuracion_view.dart';
 
-Future<void> main() async {
+Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-    await Supabase.initialize(
+  await Supabase.initialize(
     url: 'Api',
     anonKey: 'API_KEY',
   );
-
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   runApp(const MainApp());
 }
@@ -65,11 +63,6 @@ class _NavigationDrawerWidgetState extends State<NavigationDrawerWidget> {
       page: 'Información general',
     ),
     DrawerItem(
-      icon: Icons.map_outlined,
-      title: 'Mapa interactivo',
-      page: 'Mapa interactivo',
-    ),
-    DrawerItem(
       icon: Icons.park_outlined,
       title: 'Árbol de la vida',
       page: 'Árbol de la vida',
@@ -91,28 +84,31 @@ class _NavigationDrawerWidgetState extends State<NavigationDrawerWidget> {
     ),
   ];
 
+  void _navigateToPage(String page) {
+    setState(() {
+      selectedPage = page;
+    });
+  }
+
   Widget _getPageWidget(String page) {
     switch (page) {
       case 'Información general':
-        return const InfoGeneralView();
+        return InfoGeneralView(onNavigate: _navigateToPage);
       case 'Mapa interactivo':
-        return const MapaInteractivoView();
+        return MapaInteractivoView(onNavigate: _navigateToPage);
       case 'Árbol de la vida':
-        return const ArbolVidaView();
+        return ArbolVidaView(onNavigate: _navigateToPage);
       case 'Chatbot':
         return ChatbotView(
-          onBack: () {
-            setState(() {
-              selectedPage = 'Mapa interactivo';
-            });
-          },
+          onBack: () => _navigateToPage('Mapa interactivo'),
+          onNavigate: _navigateToPage,
         );
       case 'Tickets':
-        return const TicketsView();
+        return TicketsView(onNavigate: _navigateToPage);
       case 'Buscar':
-        return const SearchView();
+        return SearchView(onNavigate: _navigateToPage);
       case 'Configuración':
-        return const ConfiguracionView();
+        return ConfiguracionView(onNavigate: _navigateToPage);
       default:
         return const Center(child: Text('Seleccione una opción'));
     }
@@ -144,11 +140,7 @@ class _NavigationDrawerWidgetState extends State<NavigationDrawerWidget> {
               ),
             ),
             tooltip: 'Ir al Chatbot',
-            onPressed: () {
-              setState(() {
-                selectedPage = 'Chatbot';
-              });
-            },
+            onPressed: () => _navigateToPage('Chatbot'),
           ),
           const SizedBox(width: 4),
           IconButton(
@@ -165,11 +157,7 @@ class _NavigationDrawerWidgetState extends State<NavigationDrawerWidget> {
               ),
             ),
             tooltip: 'Buscar',
-            onPressed: () {
-              setState(() {
-                selectedPage = 'Buscar';
-              });
-            },
+            onPressed: () => _navigateToPage('Buscar'),
           ),
           const SizedBox(width: 12),
         ],
@@ -229,7 +217,6 @@ class _NavigationDrawerWidgetState extends State<NavigationDrawerWidget> {
                 ],
               ),
             ),
-
             // Menu items
             Expanded(
               child: ListView.builder(
@@ -238,7 +225,6 @@ class _NavigationDrawerWidgetState extends State<NavigationDrawerWidget> {
                 itemBuilder: (context, index) {
                   final item = _menuItems[index];
                   final isSelected = selectedPage == item.page;
-
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 4),
                     child: Material(
@@ -247,9 +233,7 @@ class _NavigationDrawerWidgetState extends State<NavigationDrawerWidget> {
                         borderRadius: BorderRadius.circular(12),
                         onTap: () {
                           Navigator.pop(context);
-                          setState(() {
-                            selectedPage = item.page;
-                          });
+                          _navigateToPage(item.page);
                         },
                         child: Container(
                           padding: const EdgeInsets.symmetric(
@@ -257,14 +241,10 @@ class _NavigationDrawerWidgetState extends State<NavigationDrawerWidget> {
                             vertical: 14,
                           ),
                           decoration: BoxDecoration(
-                            color: isSelected
-                                ? Colors.green[50]
-                                : Colors.transparent,
+                            color: isSelected ? Colors.green[50] : Colors.transparent,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: isSelected
-                                  ? Colors.green[200]!
-                                  : Colors.transparent,
+                              color: isSelected ? Colors.green[200]! : Colors.transparent,
                               width: 1,
                             ),
                           ),
@@ -272,9 +252,7 @@ class _NavigationDrawerWidgetState extends State<NavigationDrawerWidget> {
                             children: [
                               Icon(
                                 item.icon,
-                                color: isSelected
-                                    ? Colors.green[700]
-                                    : Colors.grey[600],
+                                color: isSelected ? Colors.green[700] : Colors.grey[600],
                                 size: 22,
                               ),
                               const SizedBox(width: 16),
@@ -283,12 +261,8 @@ class _NavigationDrawerWidgetState extends State<NavigationDrawerWidget> {
                                   item.title,
                                   style: TextStyle(
                                     fontSize: 15,
-                                    fontWeight: isSelected
-                                        ? FontWeight.w600
-                                        : FontWeight.w500,
-                                    color: isSelected
-                                        ? Colors.green[900]
-                                        : Colors.grey[700],
+                                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                                    color: isSelected ? Colors.green[900] : Colors.grey[700],
                                   ),
                                 ),
                               ),
@@ -310,7 +284,6 @@ class _NavigationDrawerWidgetState extends State<NavigationDrawerWidget> {
                 },
               ),
             ),
-
             // Footer
             Container(
               padding: const EdgeInsets.all(20),
