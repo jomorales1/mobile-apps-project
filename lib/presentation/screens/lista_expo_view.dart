@@ -195,22 +195,22 @@ class ListaExpoView extends StatelessWidget {
               ),
             ),
           ),
-          body: ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: gruposExpo.length,
-            itemBuilder: (context, index) {
-              final categoria = gruposExpo.keys.elementAt(index);
-              final exposiciones = gruposExpo[categoria]!;
-              
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: GrupoExposicionesCard(
-                  categoria: categoria,
-                  exposiciones: exposiciones,
-                ),
-              );
-            },
-          ),
+                    body: ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: gruposExpo.length,
+                      itemBuilder: (context, index) {
+                        final categoria = gruposExpo.keys.elementAt(index);
+                        final exposiciones = gruposExpo[categoria]!;
+                        
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: GrupoExposicionesCard(
+                            categoria: categoria,
+                            exposiciones: exposiciones,
+                          ),
+                        );
+                      },
+                    ),
         );
       },
     );

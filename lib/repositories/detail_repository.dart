@@ -5,7 +5,6 @@ class DetailRepository {
   final String _tableName = 'Especie';
   final _supabase = Supabase.instance.client;
 
-
   Future<Detail?> fetchDetailId(String expoId) async {
     try {
       final response = await _supabase
@@ -23,6 +22,19 @@ class DetailRepository {
     } catch (e) {
       print('Error fetching detail by id: $e');
       return null;
+    }
+  }
+
+  Future<List<Detail>> fetchAllSpecies() async {
+    try {
+      final response = await _supabase.from(_tableName).select().order('id');
+      final List data = response as List;
+      return data
+          .map((item) => Detail.fromJson(item as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      print('Error fetching all species: $e');
+      return [];
     }
   }
 }

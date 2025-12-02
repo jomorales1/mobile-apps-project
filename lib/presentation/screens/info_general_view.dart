@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 class InfoGeneralView extends StatelessWidget {
-  const InfoGeneralView({super.key});
+  final Function(String)? onNavigate;
+  const InfoGeneralView({super.key, this.onNavigate});
 
   @override
   Widget build(BuildContext context) {
@@ -11,56 +12,60 @@ class InfoGeneralView extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header con degradado
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(24, 60, 24, 40),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Colors.green[600]!,
-                    Colors.green[800]!,
-                  ],
+            // Header con imagen y overlay
+            Stack(
+              children: [
+                // Layer 1: Imagen de fondo
+                Container(
+                  width: double.infinity,
+                  height: 300, // Altura fija para el header
+                  decoration: const BoxDecoration(
+                    image: DecorationImage(
+                      image: AssetImage('assets/info_generalHeader.jpeg'),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
                 ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: const Icon(
-                      Icons.museum_outlined,
-                      color: Colors.white,
-                      size: 32,
-                    ),
+                // Layer 2: Overlay oscuro
+                Container(
+                  width: double.infinity,
+                  height: 300,
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.7),
                   ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    'Bienvenido',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 32,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: -0.5,
-                    ),
+                ),
+                // Layer 3: Contenido de texto
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.fromLTRB(24, 20, 24, 40), // Adjusted top padding
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center, // Centered horizontally
+                    children: [
+                      const SizedBox(height: 10), // Moved up
+                      const Text(
+                        'Bienvenido a Museos UNAL: Muchos mundos en una App',
+                        textAlign: TextAlign.center, // Added text alignment
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 32,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Explora el fascinante mundo de los museos',
+                        textAlign: TextAlign.center, // Added text alignment
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.9),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Explora el fascinante mundo de los museos',
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.9),
-                      fontSize: 16,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
 
             // Descripción
@@ -131,7 +136,7 @@ class InfoGeneralView extends StatelessWidget {
                       ),
                     ),
                     child: Text(
-                      'ubicaciones',
+                      'Ubicaciones',
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
@@ -151,9 +156,28 @@ class InfoGeneralView extends StatelessWidget {
               child: ListView.builder(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 scrollDirection: Axis.horizontal,
-                itemCount: _museos.length,
+                itemCount: _museos.length + 4, // Add 4 "coming soon" items
                 itemBuilder: (context, index) {
-                  return MuseoCard(museo: _museos[index]);
+                  if (index < _museos.length) {
+                    return MuseoCard(
+                      museo: _museos[index],
+                      onTap: () {
+                        // Navega al mapa interactivo cuando se selecciona un museo
+                        onNavigate?.call('Mapa interactivo');
+                      },
+                    );
+                  } else {
+                    final List<String> comingSoonNames = [
+                      'Museo de Arquitectura Leopoldo Rother',
+                      'Observatorio Astronómico Nacional',
+                      'Museo de la Ciencia y el Juego',
+                      'Museo de Arte',
+                    ];
+                    final int comingSoonIndex = index - _museos.length;
+                    return ComingSoonCard(
+                      cardName: comingSoonNames[comingSoonIndex],
+                    );
+                  }
                 },
               ),
             ),
@@ -264,8 +288,9 @@ class InfoGeneralView extends StatelessWidget {
 
 class MuseoCard extends StatelessWidget {
   final MuseoInfo museo;
+  final VoidCallback? onTap;
 
-  const MuseoCard({super.key, required this.museo});
+  const MuseoCard({super.key, required this.museo, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -276,16 +301,7 @@ class MuseoCard extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: () {
-            // Aquí puedes navegar a los detalles del museo
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Seleccionaste: ${museo.nombre}'),
-                duration: const Duration(seconds: 1),
-                backgroundColor: Colors.green[700],
-              ),
-            );
-          },
+          onTap: onTap,
           child: Container(
             decoration: BoxDecoration(
               color: Colors.white,
@@ -322,16 +338,32 @@ class MuseoCard extends StatelessWidget {
                     ),
                     child: Stack(
                       children: [
-                        // Placeholder o imagen real
+                        // Imagen o icono
                         Container(
                           width: double.infinity,
                           height: double.infinity,
-                          color: museo.color,
-                          child: Icon(
-                            museo.icon,
-                            size: 60,
-                            color: Colors.white.withOpacity(0.7),
-                          ),
+                          color: museo.imageUrl != null ? null : museo.color,
+                          child: museo.imageUrl != null
+                              ? Image.asset(
+                                  museo.imageUrl!,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    // Si falla la carga de la imagen, muestra el icono
+                                    return Container(
+                                      color: museo.color,
+                                      child: Icon(
+                                        museo.icon,
+                                        size: 60,
+                                        color: Colors.white.withOpacity(0.7),
+                                      ),
+                                    );
+                                  },
+                                )
+                              : Icon(
+                                  museo.icon,
+                                  size: 60,
+                                  color: Colors.white.withOpacity(0.7),
+                                ),
                         ),
                         // Badge de categoría
                         Positioned(
@@ -419,6 +451,7 @@ class MuseoInfo {
   final String categoria;
   final IconData icon;
   final Color color;
+  final String? imageUrl; // Nuevo campo para la URL de la imagen
 
   MuseoInfo({
     required this.nombre,
@@ -426,16 +459,121 @@ class MuseoInfo {
     required this.categoria,
     required this.icon,
     required this.color,
+    this.imageUrl, // Opcional
   });
 }
 
 // Lista de museos de ejemplo
 final List<MuseoInfo> _museos = [
+  // // Museo con icono (sin imagen)
+  // MuseoInfo(
+  //   nombre: 'Museo de Historia Natural',
+  //   ubicacion: 'Centro Histórico',
+  //   categoria: 'Ciencias',
+  //   icon: Icons.science_outlined,
+  //   color: const Color(0xFF2E7D32),
+  // ),
+  
+  // // Museo con imagen desde URL
+  // MuseoInfo(
+  //   nombre: 'Museo de Arte Moderno',
+  //   ubicacion: 'Zona Rosa',
+  //   categoria: 'Arte',
+  //   icon: Icons.palette_outlined, // Icono de respaldo
+  //   color: const Color(0xFF1976D2),
+  //   imageUrl: 'https://example.com/museo-arte.jpg', // URL de la imagen
+  // ),
+  
+  // Museo con imagen local (assets)
   MuseoInfo(
-    nombre: 'Museo de Historia Natural',
-    ubicacion: 'Centro Histórico',
-    categoria: 'Ciencias',
-    icon: Icons.science_outlined,
-    color: const Color(0xFF2E7D32),
-  )
+    nombre: 'Museo de Historia natural',
+    ubicacion: 'Universidad Nacional de Colombia',
+    categoria: 'Ciencia',
+    icon: Icons.account_balance_outlined,
+    color: const Color(0xFF8E24AA),
+    imageUrl: 'assets/MHN.jpg', // Imagen local
+  ),
 ];
+
+class ComingSoonCard extends StatelessWidget {
+  final String cardName;
+
+  const ComingSoonCard({super.key, required this.cardName});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 220, // Match MuseoCard width
+      margin: const EdgeInsets.symmetric(horizontal: 8),
+      child: Card(
+        elevation: 4,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              height: 160, // Match MuseoCard image height
+              decoration: BoxDecoration(
+                color: Colors.blueGrey[100],
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  topRight: Radius.circular(16),
+                ),
+              ),
+              child: Center(
+                child: Icon(
+                  Icons.update,
+                  size: 60,
+                  color: Colors.blueGrey[400],
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    cardName,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
+                      letterSpacing: -0.3,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.hourglass_empty,
+                        size: 14,
+                        color: Colors.grey[500],
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          'Próximamente...',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[600],
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

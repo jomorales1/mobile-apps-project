@@ -5,9 +5,9 @@ class ModelView extends StatelessWidget {
   final String modelPath;
   
   const ModelView({
-    Key? key,
+    super.key,
     required this.modelPath,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +19,7 @@ class ModelView extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Modelo 3D'),
-        backgroundColor: Colors.green[700],
+        backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       ),
       body: ModelViewer(
         src: urlFinal,

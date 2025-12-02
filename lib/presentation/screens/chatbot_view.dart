@@ -4,9 +4,10 @@ import 'dart:async';
 import 'package:http/http.dart' as http;
 
 class ChatbotView extends StatefulWidget {
+    final Function(String)? onNavigate;
   final VoidCallback onBack;
 
-  const ChatbotView({super.key, required this.onBack});
+  const ChatbotView({super.key, required this.onBack, this.onNavigate});
 
   @override
   State<ChatbotView> createState() => _ChatbotViewState();
@@ -18,7 +19,7 @@ class _ChatbotViewState extends State<ChatbotView> {
   final List<ChatMessage> _messages = [];
   bool _isLoading = false;
 
-  static const String n8nWebhookUrl = 'https://unbot.n8n.cloud/webhook/un-bot-webhook';
+  static const String n8nWebhookUrl = 'https://n8n.darmsoluciones.xyz/webhook/94be0a47-3203-4422-a97b-ff5f557f6045';
 
   @override
   void initState() {

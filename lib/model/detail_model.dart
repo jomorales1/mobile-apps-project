@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 class Detail {
   final int id;
   final String nombre;
@@ -11,6 +13,7 @@ class Detail {
   final String modelo;
   final String cicloVida;
   final DateTime? fechaCreacion;
+  final List<String> taxonomyPath;
 
   Detail({
     required this.id,
@@ -25,9 +28,25 @@ class Detail {
     required this.modelo,
     required this.cicloVida,
     this.fechaCreacion,
+    this.taxonomyPath = const [],
   });
 
   factory Detail.fromJson(Map<String, dynamic> json) {
+    List<String> taxPath = [];
+    final rawTax = json['taxonomy_path'];
+    if (rawTax is List) {
+      taxPath = rawTax.map((e) => e.toString()).toList();
+    } else if (rawTax is String) {
+      try {
+        final decoded = rawTax.replaceAll('\n', '');
+        final parsed = decoded.startsWith('[')
+            ? (jsonDecode(decoded) as List)
+            : [];
+        taxPath = parsed.map((e) => e.toString()).toList();
+      } catch (_) {
+        taxPath = [];
+      }
+    }
     return Detail(
       id: json['id'] ?? 0,
       nombre: json['nombre'] ?? '',
@@ -43,6 +62,7 @@ class Detail {
       fechaCreacion: json['fecha_creacion'] != null
           ? DateTime.parse(json['fecha_creacion'])
           : null,
+      taxonomyPath: taxPath,
     );
   }
 
@@ -60,6 +80,7 @@ class Detail {
       'ciclo_vida': cicloVida,
       'modelo': modelo,
       'fecha_creacion': fechaCreacion?.toIso8601String(),
+      'taxonomy_path': taxonomyPath,
     };
   }
 }

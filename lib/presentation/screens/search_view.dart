@@ -5,7 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SearchView extends StatefulWidget {
-  const SearchView({Key? key}) : super(key: key);
+    final Function(String)? onNavigate;
+  const SearchView({super.key, this.onNavigate});
 
   @override
   State<SearchView> createState() => _SearchViewState();
@@ -72,7 +73,7 @@ class _SearchViewState extends State<SearchView> {
     try {
       final url = Supabase.instance.client.storage
           .from('MuseoAPP')
-          .getPublicUrl(image);
+          .getPublicUrl(image.trim());
       return url;
     } catch (e) {
       return null;
@@ -294,11 +295,11 @@ class _SearchViewState extends State<SearchView> {
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                   ),
-                                  subtitle: mapPoint.description != null && mapPoint.description!.isNotEmpty
+                                  subtitle: mapPoint.description.isNotEmpty
                                       ? Padding(
                                           padding: EdgeInsets.only(top: 4),
                                           child: Text(
-                                            mapPoint.description!,
+                                            mapPoint.description,
                                             style: TextStyle(
                                               fontSize: 13,
                                               color: Colors.grey[600],

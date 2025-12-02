@@ -1,21 +1,33 @@
 import 'dart:math' as math;
-
 import 'package:app_museos/model/exposicion_model.dart';
-import 'package:app_museos/presentation/screens/detalle_expo_view.dart';
 import 'package:app_museos/presentation/screens/lista_expo_view.dart';
 import 'package:app_museos/repositories/exposicion_repository.dart';
+import 'package:app_museos/presentation/widgets/map_point_widget.dart';
+import 'package:app_museos/presentation/screens/qr_scanner_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 
 class MapaInteractivoView extends StatelessWidget {
-  const MapaInteractivoView({super.key});
+    final Function(String)? onNavigate;
+  const MapaInteractivoView({super.key, this.onNavigate});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Museum3DMap(),
+      floatingActionButton: Container(
+        margin: const EdgeInsets.only(bottom: 100),
+        child: FloatingActionButton.extended(
+          onPressed: () {
+            Navigator.of(context).push(MaterialPageRoute(
+              builder: (context) => const QRScannerView(),
+            ));
+          },
+          label: const Text('Leer QR'),
+          icon: const Icon(Icons.qr_code_scanner),
+        ),
+      ),
       bottomSheet: Container(
         height: 90,
         padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -106,9 +118,10 @@ class _Museum3DMapState extends State<Museum3DMap> {
   final double svgHeight = 297;
 
   List<MapPoint> points = [];
+  List<Widget> pointWidgets = [];
+  bool widgetsCreated = false;
   bool isLoading = true;
   String? errorMessage;
-
 
   final ValueNotifier<double> scaleNotifier = ValueNotifier(1.0);
   double _initialScale = 1.0;
@@ -128,30 +141,20 @@ class _Museum3DMapState extends State<Museum3DMap> {
 
       final loadedPoints = await ExposicionRepository().fetchExposiciones();
 
-      setState(() {
-        points = loadedPoints;
-        isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          points = loadedPoints;
+          isLoading = false;
+        });
+      }
     } catch (e) {
-      setState(() {
-        errorMessage = 'Error al cargar los puntos: $e';
-        isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          errorMessage = 'Error al cargar los puntos: $e';
+          isLoading = false;
+        });
+      }
       print('Error loading points from Firebase: $e');
-    }
-  }
-
-
-   Future<String?> cargarImagen(image) async {
-    try {
-      // Obtener la URL pública de la imagen
-      final url = Supabase.instance.client.storage
-          .from('MuseoAPP')
-          .getPublicUrl(image);
-      return url;
-    } catch (e) {
-      print('⚠️ Error al cargar imagen: $e');
-      return null;
     }
   }
 
@@ -163,25 +166,6 @@ class _Museum3DMapState extends State<Museum3DMap> {
 
   @override
   Widget build(BuildContext context) {
-    if (isLoading) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 16),
-            Text(
-              'Cargando mapa...',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[600],
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
     if (errorMessage != null) {
       return Center(
         child: Column(
@@ -262,116 +246,14 @@ class _Museum3DMapState extends State<Museum3DMap> {
                           final double left = p.x * scaleX;
                           final double top = p.y * scaleY;
 
-                          return ValueListenableBuilder<double>(
-                            valueListenable: scaleNotifier,
-                            builder: (context, currentScale, child) {
-                              double baseRadius = 15.0;
-                              double pointRadius =
-                                  (baseRadius / currentScale).clamp(5.0, 25.0);
-                              
-                              double fontSize = (12.0 / currentScale).clamp(8.0, 14.0);
-
-                              return Positioned(
-                                left: left - 40,
-                                top: top - pointRadius,
-                                child: GestureDetector(
-                                  onTap: () {
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (context) => DetalleExpoView(
-                                          exposicion_model: p,
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                  child: SizedBox(
-                                    width: 80,
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                      children: [
-                                        AnimatedContainer(
-                                          duration: Duration(milliseconds: 100),
-                                          curve: Curves.easeOut,
-                                          width: pointRadius * 2,
-                                          height: pointRadius * 2,
-                                          child: FutureBuilder<String?>(
-                                            future: cargarImagen(p.image),
-                                            builder: (context, snapshot) {
-                                              if (snapshot.connectionState == ConnectionState.waiting) {
-                                                // Mientras carga, muestra un placeholder
-                                                return CircleAvatar(
-                                                  radius: pointRadius,
-                                                  backgroundColor: Colors.grey[200],
-                                                  child: Icon(
-                                                    Icons.image,
-                                                    color: Colors.grey[400],
-                                                    size: pointRadius,
-                                                  ),
-                                                );
-                                              }
-                                              
-                                              if (snapshot.hasData && snapshot.data != null) {
-                                                // Si hay imagen, la muestra
-                                                return CircleAvatar(
-                                                  radius: pointRadius,
-                                                  backgroundColor: Colors.white,
-                                                  backgroundImage: NetworkImage(snapshot.data!),
-                                                  onBackgroundImageError: (exception, stackTrace) {
-                                                    print('Error cargando imagen: $exception');
-                                                  },
-                                                );
-                                              } else {
-                                                // Si no hay imagen o hubo error, muestra un ícono por defecto
-                                                return CircleAvatar(
-                                                  radius: pointRadius,
-                                                  backgroundColor: Colors.grey[200],
-                                                  child: Icon(
-                                                    Icons.museum,
-                                                    color: Colors.grey[600],
-                                                    size: pointRadius,
-                                                  ),
-                                                );
-                                              }
-                                            },
-                                          ),
-                                        ),
-                                        SizedBox(height: 4),
-                                        Container(
-                                          padding: EdgeInsets.symmetric(
-                                            horizontal: 8,
-                                            vertical: 3,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: Colors.white.withOpacity(0.95),
-                                            borderRadius: BorderRadius.circular(8),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: Colors.black.withOpacity(0.15),
-                                                blurRadius: 6,
-                                                offset: Offset(0, 2),
-                                              ),
-                                            ],
-                                          ),
-                                          child: Text(
-                                            p.label,
-                                            textAlign: TextAlign.center,
-                                            style: TextStyle(
-                                              fontSize: fontSize,
-                                              fontWeight: FontWeight.w600,
-                                              color: Colors.black87,
-                                              letterSpacing: 0.3,
-                                            ),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              );
-                            },
+                          return Positioned(
+                            left: left - 40,
+                            top: top - 15,
+                            child: MapPointWidget(
+                              key: ValueKey(p.id),
+                              point: p,
+                              scaleNotifier: scaleNotifier,
+                            ),
                           );
                         }),
                       ],
@@ -416,6 +298,4 @@ class _Museum3DMapState extends State<Museum3DMap> {
       ],
     );
   }
-
-  
 }
